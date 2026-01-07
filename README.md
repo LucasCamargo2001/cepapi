@@ -25,6 +25,8 @@ O CEP pode ser informado com ou sem formatação:
 - 01001000
 - 01001-000
 
+Observação: resultados de CEPs válidos podem ser retornados a partir de cache para reduzir chamadas ao serviço externo.
+
 ---
 
 ## Exemplo de sucesso
@@ -64,6 +66,7 @@ GET /api/cep/01001-000
 
 ## Estrutura do projeto
 
+```
 src/
  ├── Controller/
  │   └── CepController.php
@@ -77,6 +80,7 @@ tests/
  └── TestCase/
      └── Controller/
          └── CepControllerTest.php
+```
 
 ---
 
@@ -90,15 +94,32 @@ Os testes automatizados cobrem:
 - Integração real com a API ViaCEP
 
 ### Executar os testes
+```bash
 composer install
 vendor/bin/phpunit
+```
+
+> Os testes assumem acesso à internet para consulta ao ViaCEP.
 
 ---
 
-## Executar o projeto
+## Executar o projeto localmente
 
+```bash
 composer install
 bin/cake server
+```
+
+Acessar:
+http://localhost:8765/api/cep/01001000
+
+---
+
+## Executar com Docker
+
+```bash
+docker compose up --build
+```
 
 Acessar:
 http://localhost:8765/api/cep/01001000
@@ -111,19 +132,22 @@ http://localhost:8765/api/cep/01001000
 - Normalização do CEP antes da validação.
 - Respostas JSON padronizadas.
 - Tratamento explícito de falhas do serviço externo.
+- Cache de CEPs válidos para reduzir chamadas ao ViaCEP (TTL configurável).
 - Uso de testes automatizados para validar o comportamento do endpoint.
 
 ---
 
 ## Melhorias futuras
 
-- Cache de consultas de CEP.
-- Retry automático para falhas temporárias.
-- Testes com mock da API externa.
-- Logs estruturados.
+- Cache negativo para CEP inexistente (evitar chamadas repetidas para o mesmo CEP inválido).
+- Retry automático para falhas temporárias (com backoff e limite de tentativas).
+- Testes com mock da API externa para cenários sem internet/instabilidade do ViaCEP.
+- Logs estruturados (correlation id/trace id) para facilitar troubleshooting.
 
 ---
 
 ## Autor
+
+Lucas Camargo
 
 Projeto desenvolvido como desafio técnico para avaliação de Programador Júnior.

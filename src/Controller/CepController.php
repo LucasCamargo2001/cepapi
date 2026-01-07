@@ -32,7 +32,6 @@ class CepController extends AppController
         } catch (UpstreamInvalidResponseException $e) {
             return $this->jsonError(502, $e->getMessage());
         } catch (\Throwable) {
-            
             return $this->jsonError(500, 'Erro inesperado.');
         }
 
