@@ -7,6 +7,7 @@ use App\Service\Exception\CepNotFoundException;
 use App\Service\Exception\UpstreamInvalidResponseException;
 use App\Service\Exception\UpstreamTimeoutException;
 use App\Service\Exception\UpstreamUnavailableException;
+use App\Service\Mapper\CepResponseMapper;
 use Cake\Cache\Cache;
 use Cake\Http\Client;
 
@@ -17,32 +18,22 @@ class CepService
     private const CACHE_KEY_PREFIX = 'cep_';
     private const TIMEOUT_SECONDS = 3;
 
-    /**
-     * Busca CEP com cache:
-     * - Primeiro tenta cache
-     * - Se não tiver, consulta o ViaCEP, valida, normaliza e salva no cache
-     */
     public function fetch(string $cep): array
     {
         $cep = $this->onlyDigits($cep);
 
-        // (Opcional, mas bem útil) validação simples de CEP aqui também:
-        // se o Controller já valida, beleza; isso aqui é "cinto e suspensório"
         if (strlen($cep) !== 8) {
             throw new UpstreamInvalidResponseException('Formato de CEP inválido.');
         }
 
         $cacheKey = self::CACHE_KEY_PREFIX . $cep;
 
-        // 1) tenta cache
         $cached = Cache::read($cacheKey, self::CACHE_CONFIG);
         if (is_array($cached)) {
-            // se você quiser, dá pra marcar origem
             $cached['service'] = 'cache';
             return $cached;
         }
 
-        // 2) não tem cache -> consulta provider
         $http = new Client(['timeout' => self::TIMEOUT_SECONDS]);
 
         try {
@@ -53,8 +44,6 @@ class CepService
 
         $status = $response->getStatusCode();
 
-        // Observação: timeout geralmente vira exceção (catch acima),
-        // mas deixei sua regra aqui também.
         if ($status === 408) {
             throw new UpstreamTimeoutException('Timeout ao consultar o serviço de CEP.');
         }
@@ -76,16 +65,10 @@ class CepService
             throw new UpstreamInvalidResponseException('Resposta incompleta do serviço de CEP.');
         }
 
-        $normalized = [
-            'cep' => $cep,
-            'state' => (string)($json['uf'] ?? ''),
-            'city' => (string)($json['localidade'] ?? ''),
-            'neighborhood' => (string)($json['bairro'] ?? ''),
-            'street' => (string)($json['logradouro'] ?? ''),
-            'service' => 'viacep',
-        ];
+        $normalized = CepResponseMapper::map($json);
+        $normalized['cep'] = $cep;
+        $normalized['service'] = 'viacep';
 
-        // 3) salva no cache
         Cache::write($cacheKey, $normalized, self::CACHE_CONFIG);
 
         return $normalized;
