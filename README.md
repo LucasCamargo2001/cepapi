@@ -11,6 +11,7 @@ Este projeto foi desenvolvido como parte de um desafio técnico para a vaga de *
 - CakePHP 5
 - Composer
 - PHPUnit
+- Docker
 - ViaCEP (API pública)
 
 ---
@@ -75,11 +76,15 @@ src/
  │   ├── CepService.php
  │   └── Exception/
  │       └── CepExceptions.php
+ │   ├── Mapper/
+ │       └── CepResponseMapper.php
+ │  
  │
 tests/
  └── TestCase/
      └── Controller/
          └── CepControllerTest.php
+
 ```
 
 ---
@@ -115,10 +120,11 @@ http://localhost:8765/api/cep/01001000
 
 ---
 
-## Executar com Docker
+## Executar com Docker (imagem pronta)
 
 ```bash
-docker compose up --build
+docker pull lucascamargo2001/cep-api:latest
+docker run -p 8765:8765 lucascamargo2001/cep-api:latest
 ```
 
 Acessar:
@@ -134,6 +140,9 @@ http://localhost:8765/api/cep/01001000
 - Tratamento explícito de falhas do serviço externo.
 - Cache de CEPs válidos para reduzir chamadas ao ViaCEP (TTL configurável).
 - Uso de testes automatizados para validar o comportamento do endpoint.
+- O projeto não utiliza persistência em banco de dados.
+- O datasource `default` foi configurado com SQLite em memória apenas para satisfazer o bootstrap do CakePHP, evitando dependências desnecessárias como MySQL ou PostgreSQL.
+- Essa abordagem garante que a aplicação funcione corretamente em ambientes locais e Docker.
 
 ---
 
@@ -141,8 +150,8 @@ http://localhost:8765/api/cep/01001000
 
 - Cache negativo para CEP inexistente (evitar chamadas repetidas para o mesmo CEP inválido).
 - Retry automático para falhas temporárias (com backoff e limite de tentativas).
-- Testes com mock da API externa para cenários sem internet/instabilidade do ViaCEP.
-- Logs estruturados (correlation id/trace id) para facilitar troubleshooting.
+- Testes com mock da API externa para cenários sem internet ou instabilidade do ViaCEP.
+- Logs estruturados (correlation id / trace id) para facilitar troubleshooting.
 
 ---
 
