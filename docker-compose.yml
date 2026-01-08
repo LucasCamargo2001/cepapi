@@ -1,5 +1,5 @@
 services:
   api:
-    build: .
+    image: lucascamargo2001/cep-api:latest
     ports:
       - "8765:8765"

@@ -13,16 +13,19 @@ class CepController extends AppController
 {
     public function view(string $cep)
     {
-        $normalizedCep = preg_replace('/\D+/', '', $cep) ?? '';
+        $cepNormalizado = preg_replace('/\D+/', '', $cep) ?? '';
 
-        if (!preg_match('/^\d{8}$/', $normalizedCep)) {
-            return $this->jsonError(400, 'Formato de CEP inválido. Use 8 dígitos (ex: 01001000 ou 01001-000).');
+        if (!preg_match('/^\d{8}$/', $cepNormalizado)) {
+            return $this->jsonError(
+                400,
+                'Formato de CEP inválido. Use 8 dígitos (ex: 01001000 ou 01001-000).'
+            );
         }
 
         $service = new CepService();
 
         try {
-            $data = $service->fetch($normalizedCep);
+            $dados = $service->fetch($cepNormalizado);
         } catch (CepNotFoundException $e) {
             return $this->jsonError(404, $e->getMessage());
         } catch (UpstreamTimeoutException $e) {
@@ -35,29 +38,31 @@ class CepController extends AppController
             return $this->jsonError(500, 'Erro inesperado.');
         }
 
-        return $this->jsonSuccess($data);
+        return $this->jsonSuccess($dados);
     }
 
-    private function jsonSuccess(array $data)
+    private function jsonSuccess(array $dados)
     {
         $payload = [
-            'success' => true,
-            'data' => $data,
-            'error' => null,
+            'sucesso' => true,
+            'dados' => $dados,
+            'erro' => null,
         ];
 
         return $this->response
             ->withType('application/json')
-            ->withStringBody(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            ->withStringBody(
+                json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            );
     }
 
-    private function jsonError(int $status, string $message)
+    private function jsonError(int $status, string $mensagem)
     {
         $payload = [
-            'success' => false,
-            'data' => null,
-            'error' => [
-                'message' => $message,
+            'sucesso' => false,
+            'dados' => null,
+            'erro' => [
+                'mensagem' => $mensagem,
                 'status' => $status,
             ],
         ];
@@ -65,6 +70,8 @@ class CepController extends AppController
         return $this->response
             ->withStatus($status)
             ->withType('application/json')
-            ->withStringBody(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            ->withStringBody(
+                json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            );
     }
 }
