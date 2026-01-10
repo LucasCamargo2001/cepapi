@@ -3,12 +3,21 @@ declare(strict_types=1);
 
 namespace App\Test\TestCase\Controller;
 
+use Cake\Cache\Cache;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
 class CepControllerTest extends TestCase
 {
     use IntegrationTestTrait;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Garante que cada teste rode "do zero" (sem depender de cache anterior)
+        Cache::clear('cep');
+    }
 
     private function decodeJson(): array
     {
@@ -29,10 +38,10 @@ class CepControllerTest extends TestCase
         $this->assertResponseCode(400);
         $json = $this->decodeJson();
 
-        $this->assertFalse($json['success']);
-        $this->assertNull($json['data']);
-        $this->assertSame(400, $json['error']['status']);
-        $this->assertNotEmpty($json['error']['message']);
+        $this->assertFalse($json['sucesso']);
+        $this->assertNull($json['dados']);
+        $this->assertSame(400, $json['erro']['status']);
+        $this->assertNotEmpty($json['erro']['mensagem']);
     }
 
     public function testValidCepWithHyphenReturns200(): void
@@ -42,15 +51,17 @@ class CepControllerTest extends TestCase
         $this->assertResponseOk();
         $json = $this->decodeJson();
 
-        $this->assertTrue($json['success']);
-        $this->assertNull($json['error']);
+        $this->assertTrue($json['sucesso']);
+        $this->assertNull($json['erro']);
 
-        $this->assertSame('01001000', $json['data']['cep']);
-        $this->assertSame('SP', $json['data']['state']);
-        $this->assertSame('São Paulo', $json['data']['city']);
-        $this->assertSame('Sé', $json['data']['neighborhood']);
-        $this->assertSame('Praça da Sé', $json['data']['street']);
-        $this->assertSame('viacep', $json['data']['service']);
+        $dados = $json['dados'];
+
+        $this->assertSame('01001000', $dados['cep']);
+        $this->assertSame('SP', $dados['uf']);
+        $this->assertSame('São Paulo', $dados['cidade']);
+        $this->assertSame('Sé', $dados['bairro']);
+        $this->assertSame('Praça da Sé', $dados['logradouro']);
+        $this->assertSame('viacep', $dados['service']);
     }
 
     public function testCepNotFoundReturns404(): void
@@ -60,10 +71,10 @@ class CepControllerTest extends TestCase
         $this->assertResponseCode(404);
         $json = $this->decodeJson();
 
-        $this->assertFalse($json['success']);
-        $this->assertNull($json['data']);
-        $this->assertSame(404, $json['error']['status']);
-        $this->assertNotEmpty($json['error']['message']);
+        $this->assertFalse($json['sucesso']);
+        $this->assertNull($json['dados']);
+        $this->assertSame(404, $json['erro']['status']);
+        $this->assertNotEmpty($json['erro']['mensagem']);
     }
 
     public function testViaCepContractIsNormalized(): void
@@ -73,22 +84,24 @@ class CepControllerTest extends TestCase
         $this->assertResponseOk();
         $json = $this->decodeJson();
 
-        $this->assertArrayHasKey('success', $json);
-        $this->assertArrayHasKey('data', $json);
-        $this->assertArrayHasKey('error', $json);
+        $this->assertArrayHasKey('sucesso', $json);
+        $this->assertArrayHasKey('dados', $json);
+        $this->assertArrayHasKey('erro', $json);
 
-        $this->assertTrue($json['success']);
-        $this->assertNull($json['error']);
+        $this->assertTrue($json['sucesso']);
+        $this->assertNull($json['erro']);
 
-        $data = $json['data'];
-        $this->assertArrayHasKey('cep', $data);
-        $this->assertArrayHasKey('state', $data);
-        $this->assertArrayHasKey('city', $data);
-        $this->assertArrayHasKey('neighborhood', $data);
-        $this->assertArrayHasKey('street', $data);
-        $this->assertArrayHasKey('service', $data);
+        $dados = $json['dados'];
 
-        $this->assertSame('01001000', $data['cep']);
-        $this->assertSame('viacep', $data['service']);
+        $this->assertArrayHasKey('cep', $dados);
+        $this->assertArrayHasKey('logradouro', $dados);
+        $this->assertArrayHasKey('complemento', $dados);
+        $this->assertArrayHasKey('bairro', $dados);
+        $this->assertArrayHasKey('cidade', $dados);
+        $this->assertArrayHasKey('uf', $dados);
+        $this->assertArrayHasKey('service', $dados);
+
+        $this->assertSame('01001000', $dados['cep']);
+        $this->assertSame('viacep', $dados['service']);
     }
 }

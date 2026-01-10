@@ -32,21 +32,22 @@ Observação: resultados de CEPs válidos podem ser retornados a partir de cache
 ## Exemplo de sucesso
 
 **Request**
-GET /api/cep/01001-000
+GET /api/cep/03314-000
 
 **Response – 200**
 ```json
 {
-  "success": true,
-  "data": {
-    "cep": "01001000",
-    "state": "SP",
-    "city": "São Paulo",
-    "neighborhood": "Sé",
-    "street": "Praça da Sé",
+  "sucesso": true,
+  "dados": {
+    "cep": "03314000",
+    "logradouro": "Rua Vilela",
+    "complemento": "de 391/392 ao fim",
+    "bairro": "Tatuapé",
+    "cidade": "São Paulo",
+    "uf": "SP",
     "service": "viacep"
   },
-  "error": null
+  "erro": null
 }
 ```
 

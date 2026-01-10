@@ -4,15 +4,16 @@ declare(strict_types=1);
 namespace App\Service\Mapper;
 
 class CepResponseMapper
-{  public static function map(array $data): array
+{
+    public static function map(array $data): array
     {
-         return [
-            'CEP' => preg_replace('/\D+/', '', $data['cep'] ?? ''),
-            'Logradouro' => $data['logradouro'] ?? null,
-            'Complemento' => $data['complemento'] ?? null,
-            'Bairro' => $data['bairro'] ?? null,
-            'Cidade' => $data['localidade'] ?? null,
-            'UF' => $data['uf'] ?? null,
+        return [
+            'cep' => preg_replace('/\D+/', '', $data['cep'] ?? ''),
+            'logradouro' => $data['logradouro'] ?? null,
+            'complemento' => $data['complemento'] ?? null,
+            'bairro' => $data['bairro'] ?? null,
+            'cidade' => $data['localidade'] ?? null,
+            'uf' => $data['uf'] ?? null,
         ];
     }
 }
