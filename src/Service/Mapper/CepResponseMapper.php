@@ -7,12 +7,12 @@ class CepResponseMapper
 {  public static function map(array $data): array
     {
          return [
-            'cep' => preg_replace('/\D+/', '', $data['cep'] ?? ''),
-            'logradouro' => $data['logradouro'] ?? null,
-            'complemento' => $data['complemento'] ?? null,
-            'bairro' => $data['bairro'] ?? null,
-            'localidade' => $data['localidade'] ?? null,
-            'uf' => $data['uf'] ?? null,
+            'CEP' => preg_replace('/\D+/', '', $data['cep'] ?? ''),
+            'Logradouro' => $data['logradouro'] ?? null,
+            'Complemento' => $data['complemento'] ?? null,
+            'Bairro' => $data['bairro'] ?? null,
+            'Cidade' => $data['localidade'] ?? null,
+            'UF' => $data['uf'] ?? null,
         ];
     }
 }

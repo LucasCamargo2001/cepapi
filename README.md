@@ -2,7 +2,6 @@
 
 API REST simples para consulta de CEP, utilizando uma API pública, normalizando o retorno e expondo um contrato JSON padronizado.
 
-Este projeto foi desenvolvido como parte de um desafio técnico para a vaga de **Programador Júnior**, com foco em clareza, organização do código e tratamento de cenários comuns do dia a dia.
 
 ---
 
@@ -124,7 +123,7 @@ http://localhost:8765/api/cep/01001000
 
 ```bash
 docker pull lucascamargo2001/cep-api:latest
-docker run -p 8765:8765 lucascamargo2001/cep-api:latest
+docker run --rm -p 8765:8765 lucascamargo2001/cep-api:latest
 ```
 
 Acessar:
