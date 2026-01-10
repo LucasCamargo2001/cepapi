@@ -6,7 +6,7 @@ API REST simples para consulta de CEP, utilizando uma API pública, normalizando
 ---
 
 ## Tecnologias utilizadas
-- PHP 8.1+
+- PHP 8.2+
 - CakePHP 5
 - Composer
 - PHPUnit
@@ -98,6 +98,8 @@ Os testes automatizados cobrem:
 - Contrato JSON padronizado
 - Integração real com a API ViaCEP
 
+ Para garantir previsibilidade, o cache é limpo automaticamente antes de cada teste
+
 ### Executar os testes
 ```bash
 composer install
@@ -110,10 +112,13 @@ vendor/bin/phpunit
 
 ## Executar o projeto localmente
 
-```bash
+### Windows
+composer install
+php bin\cake.php server
+
+### Linux / macOS
 composer install
 bin/cake server
-```
 
 Acessar:
 http://localhost:8765/api/cep/01001000
@@ -140,9 +145,9 @@ http://localhost:8765/api/cep/01001000
 - Tratamento explícito de falhas do serviço externo.
 - Cache de CEPs válidos para reduzir chamadas ao ViaCEP (TTL configurável).
 - Uso de testes automatizados para validar o comportamento do endpoint.
-- O projeto não utiliza persistência em banco de dados.
-- O datasource `default` foi configurado com SQLite em memória apenas para satisfazer o bootstrap do CakePHP, evitando dependências desnecessárias como MySQL ou PostgreSQL.
-- Essa abordagem garante que a aplicação funcione corretamente em ambientes locais e Docker.
+- Campos de resposta padronizados em minúsculo, seguindo boas práticas REST.
+- Limpeza automática de cache nos testes para evitar efeitos colaterais.
+- Uso de SQLite em memória apenas para satisfazer o bootstrap do CakePHP.
 
 ---
 
