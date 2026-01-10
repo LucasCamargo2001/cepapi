@@ -66,7 +66,7 @@ class CepService
         }
 
         $normalized = CepResponseMapper::map($json);
-        $normalized['CEP'] = $cep;
+        $normalized['cep'] = $cep;
         $normalized['service'] = 'viacep';
 
         Cache::write($cacheKey, $normalized, self::CACHE_CONFIG);
