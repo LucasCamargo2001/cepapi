@@ -20,7 +20,7 @@ class CepService
 
     public function fetch(string $cep): array
     {
-        $cep = $this->onlyDigits($cep);
+        $cep = $this->onlyDigits(value: $cep);
 
         if (strlen($cep) !== 8) {
             throw new UpstreamInvalidResponseException('Formato de CEP inválido.');
@@ -66,7 +66,7 @@ class CepService
         }
 
         $normalized = CepResponseMapper::map($json);
-        $normalized['cep'] = $cep;
+        $normalized['CEP'] = $cep;
         $normalized['service'] = 'viacep';
 
         Cache::write($cacheKey, $normalized, self::CACHE_CONFIG);
