@@ -17,12 +17,14 @@ declare(strict_types=1);
 namespace App\Test\TestCase;
 
 use App\Application;
+use App\Middleware\RequestIdMiddleware;
 use Cake\Core\Configure;
 use Cake\Error\Middleware\ErrorHandlerMiddleware;
+use Cake\Http\Middleware\BodyParserMiddleware;
+use Cake\Http\Middleware\CsrfProtectionMiddleware;
 use Cake\Http\MiddlewareQueue;
 use Cake\Routing\Middleware\AssetMiddleware;
 use Cake\Routing\Middleware\RoutingMiddleware;
-use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
 /**
@@ -30,18 +32,16 @@ use Cake\TestSuite\TestCase;
  */
 class ApplicationTest extends TestCase
 {
-    use IntegrationTestTrait;
-
     /**
      * Test bootstrap in production.
-     *
-     * @return void
      */
-    public function testBootstrap()
+    public function testBootstrap(): void
     {
         Configure::write('debug', false);
+
         $app = new Application(dirname(__DIR__, 2) . '/config');
         $app->bootstrap();
+
         $plugins = $app->getPlugins();
 
         $this->assertTrue($plugins->has('Bake'), 'plugins has Bake?');
@@ -51,14 +51,14 @@ class ApplicationTest extends TestCase
 
     /**
      * Test bootstrap add DebugKit plugin in debug mode.
-     *
-     * @return void
      */
-    public function testBootstrapInDebug()
+    public function testBootstrapInDebug(): void
     {
         Configure::write('debug', true);
+
         $app = new Application(dirname(__DIR__, 2) . '/config');
         $app->bootstrap();
+
         $plugins = $app->getPlugins();
 
         $this->assertTrue($plugins->has('DebugKit'), 'plugins has DebugKit?');
@@ -66,20 +66,32 @@ class ApplicationTest extends TestCase
 
     /**
      * testMiddleware
-     *
-     * @return void
      */
-    public function testMiddleware()
-    {
-        $app = new Application(dirname(__DIR__, 2) . '/config');
-        $middleware = new MiddlewareQueue();
+   public function testMiddleware(): void
+{
+    $app = new Application(dirname(__DIR__, 2) . '/config');
 
-        $middleware = $app->middleware($middleware);
+    $queue = new MiddlewareQueue();
+    $queue = $app->middleware($queue);
 
-        $this->assertInstanceOf(ErrorHandlerMiddleware::class, $middleware->current());
-        $middleware->seek(1);
-        $this->assertInstanceOf(AssetMiddleware::class, $middleware->current());
-        $middleware->seek(2);
-        $this->assertInstanceOf(RoutingMiddleware::class, $middleware->current());
+    $classes = [];
+    foreach ($queue as $mw) {
+        $classes[] = get_class($mw);
     }
+
+    // Observação:
+    // O MiddlewareQueue do Cake expõe a lista numa ordem que não é a mesma
+    // que você escreveu com ->add(). Por isso o RequestId aparece primeiro aqui.
+    $expected = [
+        \App\Middleware\RequestIdMiddleware::class,
+        \Cake\Error\Middleware\ErrorHandlerMiddleware::class,
+        \Cake\Routing\Middleware\AssetMiddleware::class,
+        \Cake\Routing\Middleware\RoutingMiddleware::class,
+        \Cake\Http\Middleware\BodyParserMiddleware::class,
+        \Cake\Http\Middleware\CsrfProtectionMiddleware::class,
+    ];
+
+    $this->assertSame($expected, $classes);
+}
+
 }

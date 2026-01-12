@@ -2,7 +2,6 @@
 
 API REST simples para consulta de CEP, utilizando uma API pública, normalizando o retorno e expondo um contrato JSON padronizado.
 
-
 ---
 
 ## Tecnologias utilizadas
@@ -31,7 +30,7 @@ Observação: resultados de CEPs válidos podem ser retornados a partir de cache
 
 ## Exemplo de sucesso
 
-**Request**
+**Request**  
 GET /api/cep/03314-000
 
 **Response – 200**
@@ -74,18 +73,46 @@ src/
  │
  ├── Service/
  │   ├── CepService.php
- │   └── Exception/
- │       └── CepExceptions.php
- │   ├── Mapper/
+ │   ├── Exception/
+ │   │   └── CepExceptions.php
+ │   └── Mapper/
  │       └── CepResponseMapper.php
- │  
  │
+ └── Middleware/
+     └── RequestIdMiddleware.php
+
 tests/
  └── TestCase/
      └── Controller/
          └── CepControllerTest.php
-
 ```
+
+---
+
+## Logs e observabilidade
+
+A aplicação utiliza **logs estruturados em JSON**, escritos diretamente no **stdout**.
+
+Essa abordagem facilita:
+- Visualização em tempo real no terminal
+- Uso em containers Docker
+- Integração futura com ferramentas como Grafana, Loki ou Elastic Stack
+
+### Exemplo de logs
+
+```text
+2026-01-11 23:39:32 info: {"event":"cep_cache_hit","ts":"2026-01-11T23:39:32+00:00","request_id":"3ddfb6ab66f0aa151fa8f6b7cac17fa6","cep":"02243030"}
+
+2026-01-11 23:39:32 info: {"event":"request_end","ts":"2026-01-11T23:39:32+00:00","request_id":"3ddfb6ab66f0aa151fa8f6b7cac17fa6","route":"GET /api/cep/{cep}","cep":"02243030","status":200,"duration_ms":3}
+```
+
+### Características dos logs
+- `request_id` para correlação entre eventos da mesma requisição
+- `event` identifica o tipo do evento (ex: `request_end`, `cep_cache_hit`)
+- `duration_ms` mede o tempo de processamento
+- Nenhum dado sensível é logado
+
+> Atualmente os logs não são persistidos em arquivo, sendo exibidos no mesmo terminal onde o servidor está em execução.
 
 ---
 
@@ -98,9 +125,10 @@ Os testes automatizados cobrem:
 - Contrato JSON padronizado
 - Integração real com a API ViaCEP
 
- Para garantir previsibilidade, o cache é limpo automaticamente antes de cada teste
+Para garantir previsibilidade, o cache é limpo automaticamente antes de cada teste.
 
 ### Executar os testes
+
 ```bash
 composer install
 vendor/bin/phpunit
@@ -113,14 +141,18 @@ vendor/bin/phpunit
 ## Executar o projeto localmente
 
 ### Windows
+```bash
 composer install
 php bin\cake.php server
+```
 
 ### Linux / macOS
+```bash
 composer install
 bin/cake server
+```
 
-Acessar:
+Acessar:  
 http://localhost:8765/api/cep/01001000
 
 ---
@@ -132,7 +164,7 @@ docker pull lucascamargo2001/cep-api:latest
 docker run --rm -p 8765:8765 lucascamargo2001/cep-api:latest
 ```
 
-Acessar:
+Acessar:  
 http://localhost:8765/api/cep/01001000
 
 ---
@@ -145,18 +177,18 @@ http://localhost:8765/api/cep/01001000
 - Tratamento explícito de falhas do serviço externo.
 - Cache de CEPs válidos para reduzir chamadas ao ViaCEP (TTL configurável).
 - Uso de testes automatizados para validar o comportamento do endpoint.
-- Campos de resposta padronizados em minúsculo, seguindo boas práticas REST.
-- Limpeza automática de cache nos testes para evitar efeitos colaterais.
+- Logs estruturados com `request_id` para rastreabilidade.
 - Uso de SQLite em memória apenas para satisfazer o bootstrap do CakePHP.
 
 ---
 
 ## Melhorias futuras
 
-- Cache negativo para CEP inexistente (evitar chamadas repetidas para o mesmo CEP inválido).
-- Retry automático para falhas temporárias (com backoff e limite de tentativas).
-- Testes com mock da API externa para cenários sem internet ou instabilidade do ViaCEP.
-- Logs estruturados (correlation id / trace id) para facilitar troubleshooting.
+- Diferenciação do tipo de erro nos logs (ex: `invalid_cep`, `not_found`, `upstream_timeout`).
+- Persistência de logs em arquivo ou integração com Loki/Grafana.
+- Cache negativo para CEP inexistente.
+- Retry automático para falhas temporárias.
+- Testes com mock da API externa.
 
 ---
 
@@ -165,3 +197,4 @@ http://localhost:8765/api/cep/01001000
 Lucas Camargo
 
 Projeto desenvolvido como desafio técnico para avaliação de Programador Júnior.
+

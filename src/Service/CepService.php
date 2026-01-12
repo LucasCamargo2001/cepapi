@@ -8,6 +8,7 @@ use App\Service\Exception\UpstreamInvalidResponseException;
 use App\Service\Exception\UpstreamTimeoutException;
 use App\Service\Exception\UpstreamUnavailableException;
 use App\Service\Mapper\CepResponseMapper;
+use App\Support\ProdLog;
 use Cake\Cache\Cache;
 use Cake\Http\Client;
 
@@ -18,11 +19,16 @@ class CepService
     private const CACHE_KEY_PREFIX = 'cep_';
     private const TIMEOUT_SECONDS = 3;
 
-    public function fetch(string $cep): array
+    public function fetch(string $cep, ?string $requestId = null): array
     {
-        $cep = $this->onlyDigits(value: $cep);
+        $cep = $this->onlyDigits($cep);
 
         if (strlen($cep) !== 8) {
+            ProdLog::warning('cep_invalid_service', [
+                'request_id' => $requestId,
+                'cep' => $cep,
+            ]);
+
             throw new UpstreamInvalidResponseException('Formato de CEP inválido.');
         }
 
@@ -30,19 +36,43 @@ class CepService
 
         $cached = Cache::read($cacheKey, self::CACHE_CONFIG);
         if (is_array($cached)) {
+            ProdLog::info('cep_cache_hit', [
+                'request_id' => $requestId,
+                'cep' => $cep,
+            ]);
+
             $cached['service'] = 'cache';
             return $cached;
         }
 
+        ProdLog::info('cep_cache_miss', [
+            'request_id' => $requestId,
+            'cep' => $cep,
+        ]);
+
         $http = new Client(['timeout' => self::TIMEOUT_SECONDS]);
+        $t0 = microtime(true);
 
         try {
             $response = $http->get(sprintf(self::URL, $cep));
         } catch (\Throwable) {
+            ProdLog::error('viacep_unavailable', [
+                'request_id' => $requestId,
+                'cep' => $cep,
+            ]);
+
             throw new UpstreamUnavailableException('Falha ao consultar o serviço de CEP.');
         }
 
+        $durationMs = (int)round((microtime(true) - $t0) * 1000);
         $status = $response->getStatusCode();
+
+        ProdLog::info('viacep_response', [
+            'request_id' => $requestId,
+            'cep' => $cep,
+            'status' => $status,
+            'duration_ms' => $durationMs,
+        ]);
 
         if ($status === 408) {
             throw new UpstreamTimeoutException('Timeout ao consultar o serviço de CEP.');
