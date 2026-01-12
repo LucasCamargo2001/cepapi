@@ -15,13 +15,11 @@ class CepControllerTest extends TestCase
     {
         parent::setUp();
 
-        // Garante que cada teste rode "do zero" (sem depender de cache anterior)
+      
         Cache::clear('cep');
     }
 
-    /**
-     * Decodifica o JSON e, se falhar, já imprime status + body para facilitar debug.
-     */
+    
     private function decodeJson(): array
     {
         $this->assertContentType(
@@ -46,16 +44,14 @@ class CepControllerTest extends TestCase
         return $json;
     }
 
-    /**
-     * Gera uma string de debug bem útil quando o teste falha.
-     */
+    
     private function debugResponse(string $headline = 'Falha'): string
     {
         $status = $this->_response?->getStatusCode();
         $contentType = $this->_response?->getHeaderLine('Content-Type');
         $body = (string)$this->_response?->getBody();
 
-        // Evita log gigante, mas ainda mostra o essencial.
+        
         $bodyPreview = mb_substr($body, 0, 2000);
 
         return $headline
@@ -64,9 +60,7 @@ class CepControllerTest extends TestCase
             . "\nBody (até 2000 chars):\n{$bodyPreview}\n";
     }
 
-    /**
-     * Helper para validar o "contrato" padrão da API.
-     */
+    
     private function assertApiEnvelope(array $json): void
     {
         $this->assertArrayHasKey('sucesso', $json, 'Payload deve ter a chave raiz "sucesso".' . $this->debugResponse());
@@ -74,9 +68,7 @@ class CepControllerTest extends TestCase
         $this->assertArrayHasKey('erro', $json, 'Payload deve ter a chave raiz "erro".' . $this->debugResponse());
     }
 
-    /**
-     * Helper para validar resposta de erro padronizada.
-     */
+   
     private function assertErrorPayload(array $json, int $statusEsperado): void
     {
         $this->assertApiEnvelope($json);
@@ -99,9 +91,7 @@ class CepControllerTest extends TestCase
         );
     }
 
-    /**
-     * Helper para validar o "shape" de dados normalizados.
-     */
+    
     private function assertNormalizedCepData(array $dados): void
     {
         foreach (['cep', 'logradouro', 'complemento', 'bairro', 'cidade', 'uf', 'service'] as $key) {

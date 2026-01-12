@@ -42,7 +42,7 @@ class Application extends BaseApplication
 
     public function middleware(MiddlewareQueue $middlewareQueue): MiddlewareQueue
     {
-        // ✅ Primeiro: RequestId (pra existir em toda request, inclusive erros)
+        
         $middlewareQueue->add(new RequestIdMiddleware());
 
         $middlewareQueue
